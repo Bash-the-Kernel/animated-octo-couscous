@@ -79,6 +79,10 @@ target_link_libraries(hft_core PUBLIC
 add_executable(hft_exchange src/main.cpp)
 target_link_libraries(hft_exchange PRIVATE hft_core)
 
+# Simple web server demo
+add_executable(web_server simple_server.cpp)
+target_link_libraries(web_server PRIVATE hft_core)
+
 # Unit tests
 add_executable(unit_tests
     tests/unit/order_book_test.cpp
