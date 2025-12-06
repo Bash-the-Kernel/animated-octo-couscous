@@ -1,0 +1,9 @@
+{
+  "feed_url": "ws://localhost:9001",
+  "wal_path": "data/wal.bin",
+  "snapshot_path": "data/snapshot.bin",
+  "snapshot_interval_sec": 60,
+  "http_port": 8080,
+  "ws_port": 9002,
+  "enable_metrics": true
+}

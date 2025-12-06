@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  hft-exchange:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: hft-exchange
+    ports:
+      - "8080:8080"  # HTTP API
+      - "9002:9002"  # WebSocket
+    volumes:
+      - hft-data:/app/data
+    environment:
+      - LOG_LEVEL=INFO
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - hft-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: hft-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - hft-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: hft-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - hft-network
+
+volumes:
+  hft-data:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  hft-network:
+    driver: bridge
