@@ -10,32 +10,49 @@ Get the HFT Exchange running in 5 minutes.
 
 ## 1. Build the Exchange
 
-```bash
-# Clone and enter directory
+### On Windows (MSVC)
+```cmd
 cd animated-octo-couscous
+mkdir build
+cd build
+cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake --build . --config Release
+```
 
-# Build C++ project
+### On Linux/macOS
+```bash
+cd animated-octo-couscous
 mkdir build && cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
 cmake --build . -j$(nproc)
-cd ..
 ```
 
-## 2. Run Tests (Optional)
+## 2. Run Tests
 
+### Windows
+```cmd
+ctest -C Release --output-on-failure
+```
+
+### Linux/macOS
 ```bash
-cd build
 ctest --output-on-failure
-cd ..
 ```
 
 ## 3. Start the Exchange
 
-```bash
-# Create data directory
-mkdir -p data
+### Windows
+```cmd
+cd ..
+mkdir data
+cd build
+Release\hft_exchange.exe ..\config.json
+```
 
-# Run exchange
+### Linux/macOS
+```bash
+cd ..
+mkdir -p data
 ./build/hft_exchange config.json
 ```
 
@@ -51,20 +68,23 @@ You should see:
 
 ## 4. Verify It's Running
 
-Open another terminal:
-
-```bash
+### Windows (PowerShell)
+```powershell
 # Check health
-curl http://localhost:8080/healthz
-# Output: OK
+Invoke-WebRequest http://localhost:8080/healthz
 
 # Check metrics
-curl http://localhost:8080/metrics
-# Output: Prometheus metrics
+Invoke-WebRequest http://localhost:8080/metrics
 
 # Check order count
+Invoke-WebRequest http://localhost:8080/orders/count
+```
+
+### Linux/macOS
+```bash
+curl http://localhost:8080/healthz
+curl http://localhost:8080/metrics
 curl http://localhost:8080/orders/count
-# Output: {"processed":0}
 ```
 
 ## 5. Start the UI (Optional)
@@ -113,17 +133,21 @@ curl -X POST http://localhost:8080/orders \
 
 ## 7. Run Benchmarks
 
+### Windows
+```cmd
+cd build
+Release\orderbook_bench.exe
+Release\engine_bench.exe
+```
+
+### Linux/macOS
 ```bash
 cd build
-
-# Order book benchmarks
 ./orderbook_bench
-
-# Engine benchmarks
 ./engine_bench
 ```
 
-Expected results:
+Expected output:
 ```
 BM_AddOrder         500 ns
 BM_MatchOrder      2000 ns

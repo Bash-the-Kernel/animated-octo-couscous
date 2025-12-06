@@ -27,26 +27,44 @@ A production-grade, high-frequency trading exchange implementation in modern C++
                     └──────────────┘     └─────────────────┘
 ```
 
-## Build
+## Quick Start
 
+### Windows (MSVC)
+```cmd
+# Build
+mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake --build . --config Release
+
+# Run tests
+ctest -C Release --output-on-failure
+
+# Run benchmarks
+Release\orderbook_bench.exe
+Release\engine_bench.exe
+
+# Start exchange (create data directory first)
+mkdir data
+Release\hft_exchange.exe config.json
+```
+
+### Linux/macOS
 ```bash
+# Build
 mkdir build && cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
 cmake --build . -j$(nproc)
-```
 
-## Run
-
-```bash
-# Start exchange
-./hft_exchange --config config.json
+# Run tests
+ctest --output-on-failure
 
 # Run benchmarks
 ./orderbook_bench
 ./engine_bench
 
-# Run tests
-ctest --output-on-failure
+# Start exchange
+mkdir -p data
+./hft_exchange config.json
 ```
 
 ## Performance
