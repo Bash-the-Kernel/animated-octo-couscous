@@ -115,3 +115,16 @@ struct OrderReject {
 };
 
 } // namespace hft
+
+namespace std {
+    template<>
+    struct hash<hft::Symbol> {
+        size_t operator()(const hft::Symbol& s) const noexcept {
+            size_t h = 0;
+            for (size_t i = 0; i < s.len; ++i) {
+                h = h * 31 + static_cast<size_t>(s.data[i]);
+            }
+            return h;
+        }
+    };
+}

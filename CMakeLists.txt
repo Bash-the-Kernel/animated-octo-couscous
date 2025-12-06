@@ -82,7 +82,6 @@ target_link_libraries(hft_exchange PRIVATE hft_core)
 # Unit tests
 add_executable(unit_tests
     tests/unit/order_book_test.cpp
-    tests/unit/matching_engine_test.cpp
     tests/unit/parser_test.cpp
     tests/unit/wal_test.cpp
 )

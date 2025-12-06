@@ -1,11 +1,11 @@
 #include "mmap_file.hpp"
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <unistd.h>
 
 #ifdef _WIN32
 #include <windows.h>
 #else
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <sys/mman.h>
 #endif
 

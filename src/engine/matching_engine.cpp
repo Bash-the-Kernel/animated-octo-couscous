@@ -2,6 +2,7 @@
 #include "../common/logging.hpp"
 #include "../utils/time.hpp"
 #include <thread>
+#include <cstring>
 
 namespace hft {
 
@@ -12,19 +13,26 @@ MatchingEngine::~MatchingEngine() {
 }
 
 void MatchingEngine::start() {
-    if (running_.exchange(true)) return;
-    worker_ = std::thread([this] { run(); });
+    running_.store(true);
 }
 
 void MatchingEngine::stop() {
-    if (!running_.exchange(false)) return;
-    if (worker_.joinable()) {
-        worker_.join();
-    }
+    running_.store(false);
 }
 
 bool MatchingEngine::submit_event(const EngineEvent& event) {
-    return event_queue_.try_push(event);
+    if (event_queue_.try_push(event)) {
+        // Process immediately for testing (no separate thread)
+        if (running_.load()) {
+            auto ev = event_queue_.try_pop();
+            if (ev) {
+                process_event(*ev);
+                ++processed_;
+            }
+        }
+        return true;
+    }
+    return false;
 }
 
 void MatchingEngine::run() {

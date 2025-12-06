@@ -5,7 +5,8 @@
 using namespace hft;
 
 TEST(WALTest, CreateAndOpen) {
-    std::string path = "test_wal.bin";
+    std::filesystem::create_directories("test_data");
+    std::string path = "test_data/test_wal.bin";
     
     {
         WAL wal(path);
@@ -17,7 +18,8 @@ TEST(WALTest, CreateAndOpen) {
 }
 
 TEST(WALTest, AppendAndRead) {
-    std::string path = "test_wal_append.bin";
+    std::filesystem::create_directories("test_data");
+    std::string path = "test_data/test_wal_append.bin";
     
     {
         WAL wal(path);
@@ -44,7 +46,8 @@ TEST(WALTest, AppendAndRead) {
 }
 
 TEST(WALTest, MultipleEntries) {
-    std::string path = "test_wal_multi.bin";
+    std::filesystem::create_directories("test_data");
+    std::string path = "test_data/test_wal_multi.bin";
     
     {
         WAL wal(path);

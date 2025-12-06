@@ -15,49 +15,90 @@ public:
     std::vector<Trade> match_order(Order& order) {
         std::vector<Trade> trades;
         
-        auto& passive_orders = (order.side == Side::BUY) ? sell_orders_ : buy_orders_;
-        
-        for (auto it = passive_orders.begin(); it != passive_orders.end() && order.remaining() > 0;) {
-            auto& [price, order_ids] = *it;
-            
-            bool crosses = (order.side == Side::BUY) ? (order.price >= price) : (order.price <= price);
-            if (!crosses) break;
-            
-            for (auto oid_it = order_ids.begin(); oid_it != order_ids.end() && order.remaining() > 0;) {
-                Order& passive = orders_[*oid_it];
-                Quantity match_qty = std::min(order.remaining(), passive.remaining());
+        if (order.side == Side::BUY) {
+            for (auto it = sell_orders_.begin(); it != sell_orders_.end() && order.remaining() > 0;) {
+                Price price = it->first;
+                auto& order_ids = it->second;
                 
-                Trade trade{
-                    .buyer_id = (order.side == Side::BUY) ? order.id : passive.id,
-                    .seller_id = (order.side == Side::SELL) ? order.id : passive.id,
-                    .symbol = order.symbol,
-                    .price = passive.price,
-                    .quantity = match_qty,
-                    .timestamp = 0,
-                    .buyer_is_aggressor = (order.side == Side::BUY)
-                };
-                trades.push_back(trade);
+                if (order.price < price) break;
                 
-                order.filled += match_qty;
-                passive.filled += match_qty;
+                for (auto oid_it = order_ids.begin(); oid_it != order_ids.end() && order.remaining() > 0;) {
+                    Order& passive = orders_[*oid_it];
+                    Quantity match_qty = std::min(order.remaining(), passive.remaining());
+                    
+                    Trade trade{
+                        .buyer_id = order.id,
+                        .seller_id = passive.id,
+                        .symbol = order.symbol,
+                        .price = passive.price,
+                        .quantity = match_qty,
+                        .timestamp = 0,
+                        .buyer_is_aggressor = true
+                    };
+                    trades.push_back(trade);
+                    
+                    order.filled += match_qty;
+                    passive.filled += match_qty;
+                    
+                    if (passive.remaining() == 0) {
+                        oid_it = order_ids.erase(oid_it);
+                    } else {
+                        ++oid_it;
+                    }
+                }
                 
-                if (passive.remaining() == 0) {
-                    oid_it = order_ids.erase(oid_it);
+                if (order_ids.empty()) {
+                    it = sell_orders_.erase(it);
                 } else {
-                    ++oid_it;
+                    ++it;
                 }
             }
-            
-            if (order_ids.empty()) {
-                it = passive_orders.erase(it);
-            } else {
-                ++it;
+        } else {
+            for (auto it = buy_orders_.begin(); it != buy_orders_.end() && order.remaining() > 0;) {
+                Price price = it->first;
+                auto& order_ids = it->second;
+                
+                if (order.price > price) break;
+                
+                for (auto oid_it = order_ids.begin(); oid_it != order_ids.end() && order.remaining() > 0;) {
+                    Order& passive = orders_[*oid_it];
+                    Quantity match_qty = std::min(order.remaining(), passive.remaining());
+                    
+                    Trade trade{
+                        .buyer_id = passive.id,
+                        .seller_id = order.id,
+                        .symbol = order.symbol,
+                        .price = passive.price,
+                        .quantity = match_qty,
+                        .timestamp = 0,
+                        .buyer_is_aggressor = false
+                    };
+                    trades.push_back(trade);
+                    
+                    order.filled += match_qty;
+                    passive.filled += match_qty;
+                    
+                    if (passive.remaining() == 0) {
+                        oid_it = order_ids.erase(oid_it);
+                    } else {
+                        ++oid_it;
+                    }
+                }
+                
+                if (order_ids.empty()) {
+                    it = buy_orders_.erase(it);
+                } else {
+                    ++it;
+                }
             }
         }
         
         if (order.remaining() > 0 && order.tif == TimeInForce::GTC) {
-            auto& active_orders = (order.side == Side::BUY) ? buy_orders_ : sell_orders_;
-            active_orders[order.price].push_back(order.id);
+            if (order.side == Side::BUY) {
+                buy_orders_[order.price].push_back(order.id);
+            } else {
+                sell_orders_[order.price].push_back(order.id);
+            }
             orders_[order.id] = order;
         }
         

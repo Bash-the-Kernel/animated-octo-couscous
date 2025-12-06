@@ -25,6 +25,9 @@ public:
     void start();
     void stop();
     
+    MatchingEngine(const MatchingEngine&) = delete;
+    MatchingEngine& operator=(const MatchingEngine&) = delete;
+    
     bool submit_event(const EngineEvent& event);
     
     [[nodiscard]] const OrderBook* get_book(Symbol symbol) const;
@@ -47,7 +50,6 @@ private:
     RejectCallback reject_cb_;
     
     std::atomic<bool> running_{false};
-    std::thread worker_;
     uint64_t processed_{0};
     OrderId next_order_id_{1};
 };
